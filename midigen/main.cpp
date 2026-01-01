@@ -97,16 +97,9 @@ int main(int argc, char *argv[])
     quantize = stoi(gen_config["quantize"].asString());
     density = stoi(gen_config["density"].asString());
 
-    // lookup instrument
-    int instrumentId = stoi(gen_config["instrument"].asString());
-    string instrument_sf2_file=instruments_config[instrumentId]["soundfont"].asString();
-    Json::Value instrument_sf2_prog=instruments_config[instrumentId]["program"];
-    cout << "intrument sf2 " << instrument_sf2_file << endl;
-
     // lookup chords
     int chordsId = stoi(gen_config["chords"].asString());
     string chords=chords_config[chordsId]["chords"].asString();
-    cout << "intrument sf2 " << instrument_sf2_file << endl;
 
     // Init generator from config
     mg.setBPM( tempo );
@@ -116,10 +109,9 @@ int main(int argc, char *argv[])
     mg.setFilename( filename );
 
     // - instrument
-    mg.setSoundfont( sf2path + "/" + instrument_sf2_file );
-    for ( int index = 0; index < instrument_sf2_prog.size(); ++index ) {
-        mg.addInstrument(instrument_sf2_prog[index].asInt());
-    }
+    mg.setSoundfont( sf2path + "/" + gen_config["sf2file"].asString() );
+    mg.setInstrumentPreset( stoi(gen_config["presetNr"].asString()) );
+    mg.setInstrumentBank( stoi(gen_config["presetBank"].asString()) );
 
     // - chord
     std::stringstream chords_stream(chords);
@@ -127,7 +119,7 @@ int main(int argc, char *argv[])
     while(std::getline(chords_stream, chords_segment, ' '))
     {
         mg.addChord(chords_segment);
-        cout << "intrument sf2 " << instrument_sf2_file << endl;
+        cout << "chord " << chords_segment << endl;
     }
 
     // Generate composition

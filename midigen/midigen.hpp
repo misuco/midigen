@@ -40,7 +40,8 @@ public:
     void setQuantize(int q);
     void setDensity(int d);
     void setSoundfont(string p);
-    void addInstrument(int i);
+    void setInstrumentPreset(int p);
+    void setInstrumentBank(int b);
     void addChord(string c);
     void newMidiFile();
     void saveNewMidiFile();
@@ -51,8 +52,9 @@ private:
     int         _sampleRate;
     int         _tpq;           // ticks per quarter (1/4 note)
     
-    string              _soundfont;
-    std::vector<int>    _instruments;
+    string  _soundfont;
+    int     _instrumentPreset;
+    int     _instrumentBank;
     std::vector<string> _chords;
     
     int         _bpm;

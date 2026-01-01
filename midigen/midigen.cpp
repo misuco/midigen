@@ -73,8 +73,14 @@ void Midigen::setSoundfont(string p)
     _soundfont = p;
 }
 
-void Midigen::addInstrument(int i) {
-    _instruments.push_back(i);
+void Midigen::setInstrumentPreset(int p)
+{
+    _instrumentPreset = p;
+}
+
+void Midigen::setInstrumentBank(int b)
+{
+    _instrumentBank = b;
 }
 
 void Midigen::addChord(string c) {
@@ -112,7 +118,7 @@ void Midigen::newMidiFile() {
     int endtick=_chords.size()*_len*_tpq/_quantize;
     cout << "endtick " << endtick << endl;
     midiOut.addMetaEvent( 0, endtick, 0x2F, "" );
-    midiOut.addCopyright( 0, 0, "c1audio 2025" );
+    midiOut.addCopyright( 0, 0, "(c) 2026 by apolloqa.net / Claudio Zopfi" );
     midiOut.sortTracks();
 }
 
@@ -123,18 +129,18 @@ void Midigen::createChordsTrack() {
     std::uniform_int_distribution<std::mt19937::result_type> dist127(0,127); // distribution in range [1, 6]
     std::uniform_int_distribution<std::mt19937::result_type> dist32k(0,32767); // distribution in range [1, 6]
 
-    // Select random instrument
-    int nInst=_instruments.size();
-    int randomInstrument = dist127(rng);
-    randomInstrument=randomInstrument%(nInst-1);
-    int randomInstrumentProg=_instruments.at(randomInstrument);
-
     //string command = sprintf("echo prog 0 %d > %s.conf",randomInstrument, _filename);
-    string command = std::format("echo prog 0 {} > {}.conf",randomInstrumentProg ,_filename);
+    string command = std::format("echo prog 0 {} > {}.conf",_instrumentPreset ,_filename);
     system( command.c_str() );
     cout << "executed " << command << endl;
 
-    MidiEvent pc( 192, randomInstrumentProg );
+    MidiEvent bankMsb( 0, 0 );
+    midiOut.addEvent( 0, 0, bankMsb );
+    
+    MidiEvent bankLsb( 32, _instrumentBank );
+    midiOut.addEvent( 0, 0, bankLsb );
+    
+    MidiEvent pc( 192, _instrumentPreset );
     midiOut.addEvent( 0, 0, pc );
 
     std::vector<int> chordNoteSet;
