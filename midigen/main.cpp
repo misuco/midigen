@@ -69,7 +69,6 @@ int main(int argc, char *argv[])
     std::ifstream instruments_config_file(instruments_config_filename, std::ifstream::binary);
     Json::Value instruments_config;
     instruments_config_file >> instruments_config;
-    cout<< "instrument config" << endl << instruments_config << endl;
 
     /*
     parse generator config json:
