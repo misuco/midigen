@@ -39,6 +39,7 @@ public:
     void setLen(int l);
     void setQuantize(int q);
     void setDensity(int d);
+    void setSteps(string s);
     void setSoundfont(string p);
     void setInstrumentPreset(int p);
     void setInstrumentBank(int b);
@@ -61,6 +62,7 @@ private:
     int         _len;        // 1 Beat = 1/4 Note
     int         _quantize;
     int         _density;
+    std::vector<int> _steps;
     
     string      _filename;
     

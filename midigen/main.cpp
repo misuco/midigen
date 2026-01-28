@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
     int len=4;
     int quantize=16;
     int density=16;
+    string steps="00000000";
 
     int c;
     while ((c = getopt (argc, argv, "d:f:s:")) != -1) {
@@ -62,24 +63,22 @@ int main(int argc, char *argv[])
     Json::Value chords_config;
     chords_config_file >> chords_config;
     cout<< "chords config" << endl << chords_config << endl;
-
-    // prepare instruments lookup from json
-    string instruments_config_filename=datapath+"/instruments.json";
-    cout << "instrument config file: " << instruments_config_filename << endl;
-    std::ifstream instruments_config_file(instruments_config_filename, std::ifstream::binary);
-    Json::Value instruments_config;
-    instruments_config_file >> instruments_config;
-
+    
     /*
     parse generator config json:
     {
-        "id":"0_140_1761813755890",
-        "tempo":"140",
-        "chords":"3",
-        "instrument":"1",
-        "quantize":"3",
-        "density":"3",
-        "sessionId":"de9514cf-efaa-4cc1-ba37-8170bbcc51ea"
+        "id":"0_120_1767436140840",
+        "tempo":"120",
+        "chords":"0",
+        "sf2file":"Among Us.sf2",
+        "presetNr":"7",
+        "presetName":"EjectSplash",
+        "presetBank":"0",
+        "len":"8",
+        "quantize":"16",
+        "density":"10",
+        "steps":"00000000",
+        "sessionId":"3fbcfd97-d2a4-4ee4-be24-8fe9664d2c9d"
     }
     */
 
@@ -95,6 +94,7 @@ int main(int argc, char *argv[])
     len = stoi(gen_config["len"].asString());
     quantize = stoi(gen_config["quantize"].asString());
     density = stoi(gen_config["density"].asString());
+    steps = gen_config["steps"].asString();
 
     // lookup chords
     int chordsId = stoi(gen_config["chords"].asString());
@@ -105,6 +105,7 @@ int main(int argc, char *argv[])
     mg.setLen( len );
     mg.setQuantize( quantize );
     mg.setDensity( density );
+    mg.setSteps( steps );
     mg.setFilename( filename );
 
     // - instrument

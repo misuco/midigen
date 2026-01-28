@@ -68,6 +68,17 @@ void Midigen::setDensity(int d)
     _density = d;
 }
 
+void Midigen::setSteps(string s)
+{
+    for(char& c : s) {
+        if(c=='1') {
+            _steps.push_back(1);
+        } else {
+            _steps.push_back(0);
+        }
+    }
+}
+
 void Midigen::setSoundfont(string p)
 {
     _soundfont = p;
@@ -222,7 +233,8 @@ void Midigen::createChordsTrack() {
         MidiEvent midievent;
         int randomNote;
         for(int i=0;i<_quantize;i++) {
-            if(densityFilter[i]) {
+            //if(densityFilter[i]) {
+            if(_steps[i%8]) {
                 int tick=startTick+(i*ticksPerNote);
 
                 if(i>0) {
