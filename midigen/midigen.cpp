@@ -145,15 +145,15 @@ void Midigen::createChordsTrack() {
     string command = std::format("echo select 0 0 {} {} > {}.conf", _instrumentBank, _instrumentPreset ,_filename);
     system( command.c_str() );
     cout << "executed " << command << endl;
-    
+
     /*
     MidiEvent bankMsb( 176, _instrumentBank/128 );
     midiOut.addEvent( 0, 0, bankMsb );
-    
+
     MidiEvent bankLsb( 208, _instrumentBank%128 );
     midiOut.addEvent( 0, 0, bankLsb );
     */
-    
+
     MidiEvent pc( 192, _instrumentPreset );
     midiOut.addEvent( 0, 0, pc );
 
@@ -182,6 +182,12 @@ void Midigen::createChordsTrack() {
                 chordNoteSet.push_back(chordBaseNote+12*octave);
                 chordNoteSet.push_back(chordBaseNote+3+12*octave);
                 chordNoteSet.push_back(chordBaseNote+7+12*octave);
+            } else if(lastChar=='7') {
+                    // minor chord
+                    chordNoteSet.push_back(chordBaseNote+12*octave);
+                    chordNoteSet.push_back(chordBaseNote+4+12*octave);
+                    chordNoteSet.push_back(chordBaseNote+7+12*octave);
+                    chordNoteSet.push_back(chordBaseNote+10+12*octave);
             } else {
                 // major chord
                 chordNoteSet.push_back(chordBaseNote+12*octave);

@@ -56,20 +56,12 @@ int main(int argc, char *argv[])
         }
     }
 
-    // prepare chords lookup from json
-    string chords_config_filename=datapath+"/chords.json";
-    cout << "chords config file: " << chords_config_filename << endl;
-    std::ifstream chords_config_file(chords_config_filename, std::ifstream::binary);
-    Json::Value chords_config;
-    chords_config_file >> chords_config;
-    cout<< "chords config" << endl << chords_config << endl;
-    
     /*
     parse generator config json:
     {
         "id":"0_120_1767436140840",
         "tempo":"120",
-        "chords":"0",
+        "chords":"E_A_G_C",
         "sf2file":"Among Us.sf2",
         "presetNr":"7",
         "presetName":"EjectSplash",
@@ -97,8 +89,7 @@ int main(int argc, char *argv[])
     steps = gen_config["steps"].asString();
 
     // lookup chords
-    int chordsId = stoi(gen_config["chords"].asString());
-    string chords=chords_config[chordsId]["chords"].asString();
+    string chords = gen_config["chords"].asString();
 
     // Init generator from config
     mg.setBPM( tempo );
@@ -116,7 +107,7 @@ int main(int argc, char *argv[])
     // - chord
     std::stringstream chords_stream(chords);
     std::string chords_segment;
-    while(std::getline(chords_stream, chords_segment, ' '))
+    while(std::getline(chords_stream, chords_segment, '_'))
     {
         mg.addChord(chords_segment);
         cout << "chord " << chords_segment << endl;
