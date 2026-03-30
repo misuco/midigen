@@ -32,9 +32,8 @@ int main(int argc, char *argv[])
     string sf2path=".";
     string datapath=".";
     int tempo=140;
-    int len=4;
+    int beatsPerChord=4;
     int quantize=16;
-    int density=16;
     string steps="00000000";
 
     int c;
@@ -42,17 +41,16 @@ int main(int argc, char *argv[])
         switch (c)
         {
             case 'd':
-            datapath = optarg;
-            break;
+                datapath = optarg;
+                break;
             case 'f':
-            filename = optarg;
-            break;
+                filename = optarg;
+                break;
             case 's':
-            sf2path = optarg;
-            break;
-
+                sf2path = optarg;
+                break;
             default:
-            abort ();
+                abort ();
         }
     }
 
@@ -66,9 +64,8 @@ int main(int argc, char *argv[])
         "presetNr":"7",
         "presetName":"EjectSplash",
         "presetBank":"0",
-        "len":"8",
+        "beatsPerChord":"8",
         "quantize":"16",
-        "density":"10",
         "steps":"00000000",
         "sessionId":"3fbcfd97-d2a4-4ee4-be24-8fe9664d2c9d"
     }
@@ -83,9 +80,9 @@ int main(int argc, char *argv[])
 
     // set direct parameters
     tempo = stoi(gen_config["tempo"].asString());
-    len = stoi(gen_config["len"].asString());
+    beatsPerChord = stoi(gen_config["beatsPerChord"].asString());
     quantize = stoi(gen_config["quantize"].asString());
-    density = stoi(gen_config["density"].asString());
+    //density = stoi(gen_config["density"].asString());
     steps = gen_config["steps"].asString();
 
     // lookup chords
@@ -93,9 +90,9 @@ int main(int argc, char *argv[])
 
     // Init generator from config
     mg.setBPM( tempo );
-    mg.setLen( len );
+    mg.setBeatsPerChord( beatsPerChord );
     mg.setQuantize( quantize );
-    mg.setDensity( density );
+    //mg.setDensity( density );
     mg.setSteps( steps );
     mg.setFilename( filename );
 

@@ -36,9 +36,8 @@ public:
 
     void setFilename(const string &f);
     void setBPM(int b);
-    void setLen(int l);
+    void setBeatsPerChord(int l);
     void setQuantize(int q);
-    void setDensity(int d);
     void setSteps(string s);
     void setSoundfont(string p);
     void setInstrumentPreset(int p);
@@ -49,23 +48,22 @@ public:
 
 private:
     MidiFile    midiOut;
-    
+
     int         _sampleRate;
     int         _tpq;           // ticks per quarter (1/4 note)
-    
+
     string  _soundfont;
     int     _instrumentPreset;
     int     _instrumentBank;
     std::vector<string> _chords;
-    
+
     int         _bpm;
-    int         _len;        // 1 Beat = 1/4 Note
+    int         _beatsPerChord;        // 1 Beat = 1/4 Note
     int         _quantize;
-    int         _density;
     std::vector<int> _steps;
-    
+
     string      _filename;
-    
+
     void createChordsTrack();
     int str2midinote(const string &note);
     string midinote2txt(const int &note);
