@@ -42,25 +42,34 @@ public:
     void setSoundfont(string p);
     void setInstrumentPreset(int p);
     void setInstrumentBank(int b);
+    void setMinOctave(int o);
+    void setMaxOctave(int o);
     void addChord(string c);
     void newMidiFile();
     void saveNewMidiFile();
 
 private:
-    MidiFile    midiOut;
+    MidiFile midiOut;
 
-    int         _sampleRate;
-    int         _tpq;           // ticks per quarter (1/4 note)
+    int     _sampleRate;
+    int     _tpq;           // ticks per quarter (1/4 note)
 
     string  _soundfont;
     int     _instrumentPreset;
     int     _instrumentBank;
-    std::vector<string> _chords;
 
-    int         _bpm;
-    int         _beatsPerChord;        // 1 Beat = 1/4 Note
-    int         _quantize;
+    std::vector<string> _chords;
+    int    _minOctave;
+    int    _maxOctave;
+
+    int     _bpm;
+    int     _beatsPerChord;        // 1 Beat = 1/4 Note
+    int     _quantize;
+
     std::vector<std::vector<int>> _steps;
+    int     _stepsPerLine;
+    int     _stepsLineCount;
+
 
     string      _filename;
 

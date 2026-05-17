@@ -101,6 +101,10 @@ int main(int argc, char *argv[])
     mg.setInstrumentPreset( stoi(gen_config["presetNr"].asString()) );
     mg.setInstrumentBank( stoi(gen_config["presetBank"].asString()) );
 
+    // - octave range
+    mg.setMinOctave( stoi(gen_config["minOctave"].asString()) );
+    mg.setMaxOctave( stoi(gen_config["maxOctave"].asString()) );
+
     // - chord
     std::stringstream chords_stream(chords);
     std::string chords_segment;

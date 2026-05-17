@@ -66,20 +66,24 @@ void Midigen::setQuantize(int q)
 void Midigen::setSteps(string s)
 {
     int count=0;
+
+    _stepsPerLine=8;
+    _steps.push_back({});
     _steps.push_back({});
     _steps.push_back({});
     _steps.push_back({});
 
     for(char& c : s) {
-        int line=count/8;
+        _stepsLineCount=count/_stepsPerLine;
         if(c=='1') {
-            _steps[line].push_back(1);
+            _steps[_stepsLineCount].push_back(1);
         } else {
-            _steps[line].push_back(0);
+            _steps[_stepsLineCount].push_back(0);
         }
         count++;
-        //cout << "setStep " << line << " " << count << endl;
     }
+
+    _stepsLineCount++;
 }
 
 void Midigen::setSoundfont(string p)
@@ -95,6 +99,20 @@ void Midigen::setInstrumentPreset(int p)
 void Midigen::setInstrumentBank(int b)
 {
     _instrumentBank = b;
+}
+
+void Midigen::setMinOctave(int o) {
+    _minOctave = o;
+    if(_minOctave>=_maxOctave) {
+        _maxOctave=_minOctave+1;
+    }
+}
+
+void Midigen::setMaxOctave(int o) {
+    _maxOctave = o;
+    if(_minOctave>=_maxOctave) {
+        _minOctave=_maxOctave-1;
+    }
 }
 
 void Midigen::addChord(string c) {
@@ -182,7 +200,9 @@ void Midigen::createChordsTrack() {
 
         char lastChar=chord.back();
 
-        for(int octave=4;octave<6;octave++) {
+        // octave min: 0
+        // octave max: 9
+        for(int octave=_minOctave;octave<=_maxOctave;octave++) {
             if(lastChar=='m') {
                 // minor chord
                 chordNoteSet.push_back(chordBaseNote+12*octave);
@@ -205,56 +225,61 @@ void Midigen::createChordsTrack() {
 
         // add calculated notes to midifile
         MidiEvent midievent;
-        int randomNote;
-        bool noteOn=false;
+        std::vector<int> randomNotes;
+        std::vector<bool> notesOn={false,false,false};
 
-        // calculate next note
-        randomNote = chordNoteSet.at(dist32k(rng)%noteSetSize);
+        // calculate next notes
+        int randomNoteIndex = dist32k(rng)%(noteSetSize-4);
+        int randomBaseNote = chordNoteSet.at(randomNoteIndex);
+        randomNotes.push_back(randomBaseNote);
+        randomNotes.push_back(chordNoteSet.at(randomNoteIndex+1));
+        randomNotes.push_back(chordNoteSet.at(randomNoteIndex+2));
+        randomNotes.push_back(chordNoteSet.at(randomNoteIndex+3));
+
         int randomVelocity = 127; //64+(dist127(rng)%2)*63;
 
         int tickNum;
         int tick;
 
         for(int j=0;j<_beatsPerChord;j++) {
-            cout << "chordbeat " << j << endl;
+            //cout << "chordbeat " << j << endl;
+            
             for(int i=0;i<stepsPerBeat;i++) {
                 tickNum=startTick+j*stepsPerBeat+i;
                 tick=tickNum*ticksPerStep;
+                // cout << "step " << currentStep << " value " << _steps[0][currentStep] << " tickNum " << tickNum << " tick " << tick << endl;
 
-                //cout << "step " << currentStep << " value " << _steps[0][currentStep] << " tickNum " << tickNum << " tick " << tick;
-
-                if(_steps[0][currentStep]==1) {
-                    if(noteOn==false) {
-
-                        // new note On
-                        midievent.setCommand(0x90,randomNote,randomVelocity);
+                for(int line=0; line < _stepsLineCount; line++) {
+                    cout << " " << line;
+                    if(_steps[line][currentStep]==1) {
+                        if(notesOn[line]==false) {
+                            // new note On
+                            midievent.setCommand(0x90,randomNotes[line],randomVelocity);
+                            midiOut.addEvent( 0, tick, midievent );
+                            notesOn[line]=true;
+                        }
+                    } else if(notesOn[line]) {
+                        midievent.setCommand(0x80,randomNotes[line],0x00);
                         midiOut.addEvent( 0, tick, midievent );
-                        noteOn=true;
-                        //cout << " note on  " << randomNote << endl;
-                    //} else {
-                        //cout << " - " << endl;
+                        notesOn[line]=false;
                     }
-                } else if(noteOn) {
-                    midievent.setCommand(0x80,randomNote,0x00);
-                    midiOut.addEvent( 0, tick, midievent );
-                    noteOn=false;
-                    //cout << " note off " << randomNote << endl;
-                //} else {
-                    //cout << " ? " << endl;
                 }
+
                 currentStep++;
-                if(currentStep>=8) {
+                if(currentStep>=_stepsPerLine) {
                     currentStep=0;
                 }
             }
         }
 
-        // final note Off
-        if(noteOn) {
-            midievent.setCommand(0x80,randomNote,0x00);
-            midiOut.addEvent( 0, tick+ticksPerStep-1, midievent );
-            cout << "finl ticknum " << tickNum << " tick " << tick+ticksPerStep-1 << "        note off " << randomNote << endl;
-            noteOn=false;
+        // final note Off if note still on
+        for(int line=0; line < _stepsLineCount; line++) {
+            if(notesOn[line]) {
+                midievent.setCommand(0x80,randomNotes[line],0x00);
+                midiOut.addEvent( 0, tick+ticksPerStep-1, midievent );
+                notesOn[line]=false;
+                //cout << "finl ticknum " << tickNum << " tick " << tick+ticksPerStep-1 << "        note off " << randomNote << endl;
+            }
         }
 
         chordId++;
