@@ -65,12 +65,20 @@ void Midigen::setQuantize(int q)
 
 void Midigen::setSteps(string s)
 {
+    int count=0;
+    _steps.push_back({});
+    _steps.push_back({});
+    _steps.push_back({});
+
     for(char& c : s) {
+        int line=count/8;
         if(c=='1') {
-            _steps.push_back(1);
+            _steps[line].push_back(1);
         } else {
-            _steps.push_back(0);
+            _steps[line].push_back(0);
         }
+        count++;
+        //cout << "setStep " << line << " " << count << endl;
     }
 }
 
@@ -121,10 +129,11 @@ void Midigen::newMidiFile() {
     createChordsTrack();
 
     // End Of Track
-    int endtick=_chords.size()*_beatsPerChord*_tpq/_quantize;
+    int endtick=_chords.size()*_beatsPerChord*_tpq;
     cout << "endtick " << endtick << endl;
     midiOut.addMetaEvent( 0, endtick, 0x2F, "" );
     midiOut.addCopyright( 0, 0, "(c) 2026 by apolloqa.net / Claudio Zopfi" );
+
     midiOut.sortTracks();
 }
 
@@ -157,11 +166,15 @@ void Midigen::createChordsTrack() {
     int chordId=0;
 
     // number of 16th notes to generate
-    int ticksPerNote=_tpq*4/_quantize;
+    int stepsPerBeat=_quantize/4;
+
+    int ticksPerStep=_tpq*4/_quantize;
 
     for(auto chord:_chords) {
-        //int startTick=chordId*n16th*_tp16th;
-        int startTick=chordId*_beatsPerChord*_tpq;
+        // step (sequenzer button)
+        int currentStep=0;
+
+        int startTick=chordId*_beatsPerChord*stepsPerBeat;
 
         // calculate available notes in current chord
         chordNoteSet.clear();
@@ -169,14 +182,14 @@ void Midigen::createChordsTrack() {
 
         char lastChar=chord.back();
 
-        for(int octave=2;octave<7;octave++) {
+        for(int octave=4;octave<6;octave++) {
             if(lastChar=='m') {
                 // minor chord
                 chordNoteSet.push_back(chordBaseNote+12*octave);
                 chordNoteSet.push_back(chordBaseNote+3+12*octave);
                 chordNoteSet.push_back(chordBaseNote+7+12*octave);
             } else if(lastChar=='7') {
-                    // minor chord
+                    // minor 7 chord
                     chordNoteSet.push_back(chordBaseNote+12*octave);
                     chordNoteSet.push_back(chordBaseNote+4+12*octave);
                     chordNoteSet.push_back(chordBaseNote+7+12*octave);
@@ -195,36 +208,53 @@ void Midigen::createChordsTrack() {
         int randomNote;
         bool noteOn=false;
 
+        // calculate next note
+        randomNote = chordNoteSet.at(dist32k(rng)%noteSetSize);
+        int randomVelocity = 127; //64+(dist127(rng)%2)*63;
+
+        int tickNum;
+        int tick;
+
         for(int j=0;j<_beatsPerChord;j++) {
-            int tick;
-            for(int i=0;i<_quantize;i++) {
-                if(_steps[i%8]) {
-                    tick=startTick+((j*_beatsPerChord+i)*ticksPerNote);
+            cout << "chordbeat " << j << endl;
+            for(int i=0;i<stepsPerBeat;i++) {
+                tickNum=startTick+j*stepsPerBeat+i;
+                tick=tickNum*ticksPerStep;
 
-                    // previous note Off
-                    if(noteOn) {
-                        midievent.setCommand(0x80,randomNote,0x00);
-                        midiOut.addEvent( 0, tick-1, midievent );
-                        noteOn=false;
+                //cout << "step " << currentStep << " value " << _steps[0][currentStep] << " tickNum " << tickNum << " tick " << tick;
+
+                if(_steps[0][currentStep]==1) {
+                    if(noteOn==false) {
+
+                        // new note On
+                        midievent.setCommand(0x90,randomNote,randomVelocity);
+                        midiOut.addEvent( 0, tick, midievent );
+                        noteOn=true;
+                        //cout << " note on  " << randomNote << endl;
+                    //} else {
+                        //cout << " - " << endl;
                     }
-
-                    // calculate new note
-                    randomNote = chordNoteSet.at(dist32k(rng)%noteSetSize);
-                    int randomVelocity = 64+(dist127(rng)%2)*63;
-
-                    // new note On
-                    midievent.setCommand(0x90,randomNote,randomVelocity);
+                } else if(noteOn) {
+                    midievent.setCommand(0x80,randomNote,0x00);
                     midiOut.addEvent( 0, tick, midievent );
-                    noteOn=true;
+                    noteOn=false;
+                    //cout << " note off " << randomNote << endl;
+                //} else {
+                    //cout << " ? " << endl;
+                }
+                currentStep++;
+                if(currentStep>=8) {
+                    currentStep=0;
                 }
             }
+        }
 
-            // final note Off
-            if(noteOn) {
-                midievent.setCommand(0x80,randomNote,0x00);
-                midiOut.addEvent( 0, tick+ticksPerNote-1, midievent );
-                noteOn=false;
-            }
+        // final note Off
+        if(noteOn) {
+            midievent.setCommand(0x80,randomNote,0x00);
+            midiOut.addEvent( 0, tick+ticksPerStep-1, midievent );
+            cout << "finl ticknum " << tickNum << " tick " << tick+ticksPerStep-1 << "        note off " << randomNote << endl;
+            noteOn=false;
         }
 
         chordId++;

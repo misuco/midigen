@@ -60,7 +60,7 @@ private:
     int         _bpm;
     int         _beatsPerChord;        // 1 Beat = 1/4 Note
     int         _quantize;
-    std::vector<int> _steps;
+    std::vector<std::vector<int>> _steps;
 
     string      _filename;
 
